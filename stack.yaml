@@ -1,9 +1,6 @@
-resolver: lts-16.20
+resolver: nightly-2022-08-18
 packages:
 - http-client
 - http-client-tls
 - http-client-openssl
 - http-conduit
-extra-deps:
-- HsOpenSSL-0.11.4.20
-- HsOpenSSL-x509-system-0.1.0.4
