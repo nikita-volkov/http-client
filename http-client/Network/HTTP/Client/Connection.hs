@@ -14,6 +14,7 @@ module Network.HTTP.Client.Connection
     , strippedHostName
     ) where
 
+import Debug.Trace
 import Data.ByteString (ByteString, empty)
 import Data.IORef
 import Control.Monad
@@ -109,10 +110,14 @@ makeConnection r w c = do
         { connectionRead = do
             closed <- readIORef closedVar
             when closed $ throwHttp ConnectionClosed
-            join $ atomicModifyIORef istack $ \stack ->
+            res <- atomicModifyIORef istack $ \stack ->
               case stack of
                   x:xs -> (xs, return x)
                   [] -> ([], r)
+            traceM $ "+ makeConnection/connectionRead/join"
+            res <- res
+            traceM $ "- makeConnection/connectionRead/join"
+            return res
 
         , connectionUnread = \x -> do
             closed <- readIORef closedVar

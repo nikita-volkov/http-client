@@ -7,6 +7,7 @@ module Network.HTTP.Client.Response
     , getOriginalRequest
     ) where
 
+import Debug.Trace
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.ByteString.Lazy as L

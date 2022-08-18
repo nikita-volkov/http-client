@@ -13,6 +13,7 @@ module Network.HTTP.Client.Body
     , brRead
     ) where
 
+import Debug.Trace
 import Network.HTTP.Client.Connection
 import Network.HTTP.Client.Types
 import Control.Exception (assert)

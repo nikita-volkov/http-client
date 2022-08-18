@@ -15,6 +15,7 @@ module Network.HTTP.Client.Core
     , handleClosedRead
     ) where
 
+import Debug.Trace
 import Network.HTTP.Types
 import Network.HTTP.Client.Manager
 import Network.HTTP.Client.Types
@@ -217,7 +218,9 @@ responseOpen inputReq manager' = do
       count
       (\req -> do
         (manager, modReq) <- getModifiedRequestManager manager0 req
+        traceM "+ httpRaw'"
         (req'', res) <- httpRaw' modReq manager
+        traceM "- httpRaw'"
         let mreq = if redirectCount modReq == 0
               then Nothing
               else getRedirectedRequest req'' (responseHeaders res) (responseCookieJar res) (statusCode (responseStatus res))

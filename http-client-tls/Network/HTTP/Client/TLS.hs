@@ -23,6 +23,7 @@ module Network.HTTP.Client.TLS
     , setGlobalManager
     ) where
 
+import Debug.Trace
 import Control.Applicative ((<|>))
 import Control.Arrow (first)
 import System.Environment (getEnvironment)
@@ -118,6 +119,7 @@ getTlsConnection :: Maybe NC.ConnectionContext
                  -> Maybe NC.SockSettings
                  -> IO (Maybe HostAddress -> String -> Int -> IO Connection)
 getTlsConnection mcontext tls sock = do
+    traceM "getTlsConnection"
     context <- maybe NC.initConnectionContext return mcontext
     return $ \_ha host port -> bracketOnError
         (NC.connectTo context NC.ConnectionParams
@@ -135,6 +137,7 @@ getTlsProxyConnection
     -> Maybe NC.SockSettings
     -> IO (S.ByteString -> (Connection -> IO ()) -> String -> Maybe HostAddress -> String -> Int -> IO Connection)
 getTlsProxyConnection mcontext tls sock = do
+    traceM "getTlsProxyConnection"
     context <- maybe NC.initConnectionContext return mcontext
     return $ \connstr checkConn serverName _ha host port -> bracketOnError
         (NC.connectTo context NC.ConnectionParams
@@ -158,9 +161,22 @@ getTlsProxyConnection mcontext tls sock = do
             return conn'
 
 convertConnection :: NC.Connection -> IO Connection
-convertConnection conn = makeConnection
-    (NC.connectionGetChunk conn)
-    (NC.connectionPut conn)
+convertConnection conn = do
+  makeConnection
+    (do
+      traceM $ "+ convertConnection/connectionWaitForInput"
+      avail <- NC.connectionWaitForInput conn 10000
+      traceM $ "- convertConnection/connectionWaitForInput/avail: " <> show avail
+      traceM $ "+ convertConnection/connectionGetChunk"
+      chunk <- NC.connectionGetChunk conn
+      traceM $ "- convertConnection/connectionGetChunk"
+      return chunk
+      )
+    (\input -> do
+      traceM $ "+ convertConnection/connectionPut"
+      NC.connectionPut conn input
+      traceM $ "- convertConnection/connectionPut"
+      )
     -- Closing an SSL connection gracefully involves writing/reading
     -- on the socket.  But when this is called the socket might be
     -- already closed, and we get a @ResourceVanished@.

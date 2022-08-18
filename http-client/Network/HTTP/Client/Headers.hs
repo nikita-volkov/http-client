@@ -7,6 +7,7 @@ module Network.HTTP.Client.Headers
     , HeadersValidationResult (..)
     ) where
 
+import Debug.Trace
 import           Control.Applicative            as A ((<$>), (<*>))
 import           Control.Monad
 import qualified Data.ByteString                as S
@@ -55,7 +56,9 @@ parseStatusHeaders conn timeout' cont
     nextStatusLine = do
         -- Ensure that there is some data coming in. If not, we want to signal
         -- this as a connection problem and not a protocol problem.
+        traceM $ "+ parseStatusHeaders/nextStatusLine/connectionRead"
         bs <- connectionRead conn
+        traceM $ "- parseStatusHeaders/nextStatusLine/connectionRead/bs/length: " <> show (S.length bs)
         when (S.null bs) $ throwHttp NoResponseDataReceived
         connectionReadLineWith conn bs >>= parseStatus 3
 
